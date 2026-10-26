@@ -1,0 +1,2 @@
+import { AppShell } from '@/components/AppShell';import { StaffCoursesManager } from '@/components/StaffCoursesManager';
+export default function InstructorCourses(){return <AppShell role="instructor"><div className="page page-airy"><div className="page-head compact-head"><div><span className="eyebrow simple">Teaching</span><h1>My courses.</h1><p>Manage your learners and assign CareSim scenarios to your own courses.</p></div></div><StaffCoursesManager role="instructor"/></div></AppShell>}

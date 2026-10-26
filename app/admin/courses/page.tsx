@@ -1,0 +1,2 @@
+import { AppShell } from '@/components/AppShell';import { StaffCoursesManager } from '@/components/StaffCoursesManager';
+export default function AdminCourses(){return <AppShell role="admin"><div className="page page-airy"><div className="page-head compact-head"><div><span className="eyebrow simple">Academic operations</span><h1>Courses & assignments.</h1><p>Create teaching spaces, appoint instructors, enrol learners and attach simulations as assessments.</p></div></div><StaffCoursesManager role="admin"/></div></AppShell>}
