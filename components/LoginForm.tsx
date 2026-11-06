@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 import { homeForRole } from '@/lib/auth';
 
 export function LoginForm({ nextPath = '' }: { nextPath?: string }){
@@ -19,11 +19,11 @@ export function LoginForm({ nextPath = '' }: { nextPath?: string }){
     if(!email.trim() || password.length < 6){ setError('Enter a valid email and password.'); return; }
     setLoading(true);
     try{
-      const supabase=createClient();
-      const {data,error}=await supabase.auth.signInWithPassword({email:email.trim().toLowerCase(),password});
+      const db=createClient();
+      const {data,error}=await db.auth.signInWithPassword({email:email.trim().toLowerCase(),password});
       if(error) throw error;
-      try{await supabase.rpc('record_app_activity',{p_action:'login',p_metadata:{source:'password'},p_entity_type:'session',p_entity_id:null})}catch{}
-      const {data:profile}=await supabase.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
+      try{await db.rpc('record_app_activity',{p_action:'login',p_metadata:{source:'password'},p_entity_type:'session',p_entity_id:null})}catch{}
+      const {data:profile}=await db.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
       const requested=nextPath;
       const target=requested && requested.startsWith('/') ? requested : homeForRole(profile?.role);
       router.replace(target); router.refresh();

@@ -13,10 +13,10 @@ Course → Learners → Assignment → Scenario Version → Attempt → Action L
 A “test” is a published scenario assigned to a course. This keeps grading attached to an immutable scenario version and preserves historical attempt validity.
 
 ## Security
-- Supabase Auth owns login identities.
+- Neon Managed Better Auth owns login identities.
 - Profiles own application roles.
 - RLS scopes learner and instructor data.
-- Admin-only destructive Auth operations use a server route and `SUPABASE_SECRET_KEY`.
+- Admin-only Auth operations use protected Next.js server routes and Neon Auth admin APIs.
 - Student score/state are never trusted from the browser.
 - Avatar upload is authenticated server-side with RLS/service fallback.
 

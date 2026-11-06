@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 import { CareModal } from '@/components/CareModal';
 
 type Role = 'student'|'instructor'|'admin';
@@ -16,7 +16,7 @@ export function AdminUsersPanel(){
  const [users,setUsers]=useState<U[]>([]);const [loading,setLoading]=useState(true);const [msg,setMsg]=useState('');const [q,setQ]=useState('');const [busy,setBusy]=useState<string|null>(null);const [createOpen,setCreateOpen]=useState(false);const [deleteTarget,setDeleteTarget]=useState<U|null>(null);const [newUser,setNewUser]=useState({full_name:'',email:'',password:'',role:'student' as Role,learner_type:'student'});
  async function load(){const s=createClient();const {data,error}=await s.from('profiles').select('id,full_name,email,role,learner_type,created_at').order('created_at',{ascending:false}).limit(250);if(error)setMsg(error.message);else setUsers((data||[]) as U[]);setLoading(false)}
  useEffect(()=>{void load()},[]);
- async function setRole(id:string,role:Role){setMsg('');setBusy(id);const s=createClient();const {error}=await s.rpc('admin_set_user_role',{target_user_id:id,new_role:role});if(error)setMsg(error.message);else{setUsers(x=>x.map(u=>u.id===id?{...u,role}:u));setMsg(role==='instructor'?'Account is now a Clinical Instructor. Ask the user to sign out and back in to open the Instructor Hub.':`Role updated to ${role}.`)}setBusy(null)}
+ async function setRole(id:string,role:Role){setMsg('');setBusy(id);try{const r=await fetch(`/api/admin/users/${id}/role`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});const result=await r.json();if(!r.ok)throw new Error(result.error||'Role update failed');setUsers(x=>x.map(u=>u.id===id?{...u,role}:u));setMsg(role==='instructor'?'Account is now a Clinical Instructor. Ask the user to sign out and back in to open the Instructor Hub.':`Role updated to ${role}.`)}catch(error){setMsg(error instanceof Error?error.message:'Role update failed')}finally{setBusy(null)}}
  async function removeUser(){const user=deleteTarget;if(!user)return;setBusy(user.id);setMsg('');const r=await fetch(`/api/admin/users/${user.id}`,{method:'DELETE'});const result=await r.json();if(!r.ok)setMsg(result.error||'Delete failed');else{setUsers(rows=>rows.filter(x=>x.id!==user.id));setMsg('User removed successfully.');setDeleteTarget(null)}setBusy(null)}
  async function createUser(e:React.FormEvent){e.preventDefault();setMsg('');setBusy('create');const r=await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newUser)});const result=await r.json();if(!r.ok)setMsg(result.error||'Could not create account');else{setMsg(`Account created as ${newUser.role==='instructor'?'Clinical Instructor':newUser.role==='admin'?'Administrator':'Learner'}. It can sign in immediately with the password you set.`);setNewUser({full_name:'',email:'',password:'',role:'student',learner_type:'student'});setCreateOpen(false);await load()}setBusy(null)}
  const filtered=useMemo(()=>users.filter(u=>`${u.full_name} ${u.email} ${u.role} ${u.learner_type}`.toLowerCase().includes(q.toLowerCase())),[users,q]);

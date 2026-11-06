@@ -1,63 +1,53 @@
-# CareSim production deployment
+# CareSim production deployment — Vercel
 
-## 1. GitHub
+## Before uploading
 
-This package intentionally contains no real API keys.
+1. `npm install`
+2. `npm run lint`
+3. `npm run build`
+4. `npm run check:env` (with the production env loaded)
+5. Confirm Neon `production` is the intended CareSim project, not an old BSS/London link.
 
-On Windows, double-click:
+## Vercel environment variables
 
-`PUSH_TO_GITHUB.cmd`
+Use `VERCEL_ENV_PRODUCTION.txt` as the checklist.
 
-It initializes a fresh Git history and pushes the clean project to:
+Required for full production:
+- NEXT_PUBLIC_APP_URL
+- NEXT_PUBLIC_SITE_URL
+- NEXT_PUBLIC_NEON_DATA_API_URL
+- NEON_AUTH_BASE_URL
+- NEON_AUTH_COOKIE_SECRET
+- DATABASE_URL
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_ENDPOINT_URL_S3
+- AWS_REGION
+- GEMINI_API_KEY
+- GEMINI_MODEL
+- NEXT_PUBLIC_EMAILJS_SERVICE_ID
+- NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+- NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
 
-`https://github.com/ZiadMahmoudas/caresim-next`
+After changing env values, redeploy.
 
-`.env.local`, `.next`, `node_modules`, logs and `.vercel` are ignored.
+## Neon Auth
 
-## 2. Vercel
+Add the exact Vercel production origin to Better Auth trusted domains:
 
-1. Open Vercel Dashboard.
-2. Add New -> Project.
-3. Import `ZiadMahmoudas/caresim-next`.
-4. Framework Preset: Next.js.
-5. Keep the default Build Command (`next build`).
-6. Add these Environment Variables for Production:
+`https://caresim-iota.vercel.app`
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SECRET_KEY`
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL=gemini-3.5-flash-lite`
-- `NEXT_PUBLIC_EMAILJS_SERVICE_ID`
-- `NEXT_PUBLIC_EMAILJS_TEMPLATE_ID`
-- `NEXT_PUBLIC_EMAILJS_PUBLIC_KEY`
+Keep email sign-up and sign-in enabled.
 
-For the first deployment, `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` may be omitted if the application code does not require them at build time. After Vercel assigns the production URL, set both to that exact HTTPS URL and redeploy.
+## Verification
 
-## 3. Supabase Auth URL configuration
+Visit:
 
-After Vercel gives you the production URL, in Supabase -> Authentication -> URL Configuration:
+`/api/health`
 
-- Site URL: your final Vercel production URL
-- Redirect URL: `https://YOUR-VERCEL-DOMAIN/**`
-- Keep `http://localhost:3000/**` for local development if needed.
+For a complete production setup:
+- `ok` = true
+- `productionReady` = true
+- `database` = ok
 
-## 4. Production test
-
-Check:
-
-- `/api/health`
-- Register / Login / Forgot password
-- Learner / Instructor / Admin role routing
-- Instructor Simulation Builder
-- Q&A persistence
-- Publish + learner simulation visibility
-- Timer + timeout exit
-- Course enrollment
-- Attempts / Reports / Logs
-- AI Patient / Ask CareSim
-- Contact email
-
-## Security
-
-Do not commit `.env.local` or any real Supabase/Gemini secret. Rotate any key that was previously exposed in chat, Git history or screenshots before production.
+Then smoke-test learner, instructor and admin flows.

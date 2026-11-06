@@ -1,6 +1,7 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 type Member={course_id:string;student_id:string};
 type Course={id:string;title:string;code:string|null;instructor_id:string|null;is_active:boolean};
@@ -9,22 +10,22 @@ type Scenario={id:string;title:string;slug:string;type:'clinical_case'|'skill';d
 type Profile={id:string;full_name:string;email:string|null};
 
 export default async function LearnerCourses(){
-  const supabase=await createClient();
-  const {data:{user}}=await supabase.auth.getUser();
+  const db=await createClient();
+  const {data:{user}}=await db.auth.getUser();
   if(!user) return null;
 
-  const {data:memberRows}=await supabase.from('course_members').select('course_id,student_id').eq('student_id',user.id);
+  const {data:memberRows}=await db.from('course_members').select('course_id,student_id').eq('student_id',user.id);
   const courseIds=((memberRows||[]) as Member[]).map(x=>x.course_id);
-  const {data:coursesData}=courseIds.length?await supabase.from('courses').select('id,title,code,instructor_id,is_active').in('id',courseIds).order('created_at',{ascending:false}):{data:[] as Course[]};
+  const {data:coursesData}=courseIds.length?await db.from('courses').select('id,title,code,instructor_id,is_active').in('id',courseIds).order('created_at',{ascending:false}):{data:[] as Course[]};
   const courses=(coursesData||[]) as Course[];
   const instructorIds=[...new Set(courses.map(c=>c.instructor_id).filter(Boolean))] as string[];
   const [{data:assignmentData},{data:instructorData}]=await Promise.all([
-    courseIds.length?supabase.from('assignments').select('id,course_id,scenario_id,due_at,created_at').in('course_id',courseIds).order('created_at',{ascending:false}):Promise.resolve({data:[] as Assignment[]}),
-    instructorIds.length?supabase.from('profiles').select('id,full_name,email').in('id',instructorIds):Promise.resolve({data:[] as Profile[]}),
+    courseIds.length?db.from('assignments').select('id,course_id,scenario_id,due_at,created_at').in('course_id',courseIds).order('created_at',{ascending:false}):Promise.resolve({data:[] as Assignment[]}),
+    instructorIds.length?db.from('profiles').select('id,full_name,email').in('id',instructorIds):Promise.resolve({data:[] as Profile[]}),
   ]);
   const assignments=(assignmentData||[]) as Assignment[];
   const scenarioIds=[...new Set(assignments.map(a=>a.scenario_id))];
-  const {data:scenarioData}=scenarioIds.length?await supabase.from('scenarios').select('id,title,slug,type,description,specialty,is_published').in('id',scenarioIds):{data:[] as Scenario[]};
+  const {data:scenarioData}=scenarioIds.length?await db.from('scenarios').select('id,title,slug,type,description,specialty,is_published').in('id',scenarioIds):{data:[] as Scenario[]};
   const scenarios=(scenarioData||[]) as Scenario[];
   const iMap=Object.fromEntries(((instructorData||[]) as Profile[]).map(x=>[x.id,x]));
   const sMap=Object.fromEntries(scenarios.map(x=>[x.id,x]));

@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
 import { StatCard } from '@/components/StatCard';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 export default async function Admin(){
  const s=await createClient();

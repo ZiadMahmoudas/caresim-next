@@ -1,3 +1,8 @@
 import { privateMetadata } from '@/lib/private-metadata';
+import { requireAppRole } from '@/lib/neon/guards';
 export const metadata = privateMetadata;
-export default function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) { return children; }
+export const dynamic = 'force-dynamic';
+export default async function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  await requireAppRole(['instructor','admin']);
+  return children;
+}

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect,useMemo,useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 type RosterRow={id:string;full_name:string;email:string|null;learner_type:string|null;course_titles:string[]|null;attempts_count:number;completed_attempts:number;average_score:number};
 type DirectoryRow={id:string;full_name:string;email:string|null;role:string;learner_type:string|null};

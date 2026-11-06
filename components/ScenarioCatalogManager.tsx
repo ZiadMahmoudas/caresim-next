@@ -1,7 +1,7 @@
 'use client';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 import { CareModal } from '@/components/CareModal';
 
 type Role='admin'|'instructor';

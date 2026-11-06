@@ -1,0 +1,26 @@
+# CareSim final production checklist
+
+- [ ] Neon project is the intended CareSim production project.
+- [ ] Neon region supports Object Storage (Frankfurt is supported).
+- [ ] Better Auth enabled on `neondb`.
+- [ ] Data API enabled on `neondb`.
+- [ ] Vercel domain added to Better Auth trusted domains.
+- [ ] `neon/SETUP_CARESIM_NEON.sql` run (fresh DB) OR production repair run (existing DB).
+- [ ] First admin promoted in both CareSim and Neon Auth roles.
+- [ ] `DATABASE_URL` is pooled.
+- [ ] Cookie secret is new and at least 32 characters.
+- [ ] `neon deploy` created `avatars` and `scenario-assets`.
+- [ ] All four `AWS_*` values are in Vercel.
+- [ ] Gemini key was rotated if ever exposed.
+- [ ] EmailJS values are configured.
+- [ ] No `.env.local` or `.neon` is committed.
+- [ ] `npm run lint` passes.
+- [ ] `npm run build` passes.
+- [ ] `/api/health` -> `ok: true`, `productionReady: true`, `database: "ok"`.
+- [ ] Register/login/reset password tested.
+- [ ] Learner dashboard tested.
+- [ ] Instructor workspace tested.
+- [ ] Admin workspace tested.
+- [ ] Avatar/scenario uploads tested.
+- [ ] AI features tested.
+- [ ] Contact form tested.

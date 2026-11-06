@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect,useRef,useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 type Notice={id:string;title:string;body:string;href:string|null;kind:string;is_read:boolean;created_at:string};
 export function NotificationBell(){

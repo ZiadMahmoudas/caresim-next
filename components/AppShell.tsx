@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname,useRouter } from 'next/navigation';
 import { useEffect,useMemo,useState } from 'react';
 import { Brand } from './Brand';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 import { initials,roleLabel,AppRole } from '@/lib/auth';
 import { NotificationBell } from './NotificationBell';
 
@@ -15,11 +15,11 @@ type Profile={full_name:string|null;role:AppRole;learner_type:string|null;avatar
 export function AppShell({children,role='student'}:{children:React.ReactNode;role?:AppRole}){
  const path=usePathname();const router=useRouter();const [open,setOpen]=useState(false);const [profile,setProfile]=useState<Profile|null>(null);const [search,setSearch]=useState('');const [userMenu,setUserMenu]=useState(false);
  useEffect(()=>{setOpen(false);setUserMenu(false)},[path]);
- useEffect(()=>{let mounted=true;(async()=>{const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return;const {data}=await supabase.from('profiles').select('full_name,role,learner_type,avatar_url,email').eq('id',user.id).maybeSingle();if(mounted)setProfile((data as Profile)||{full_name:user.user_metadata?.full_name||'',role:'student',learner_type:user.user_metadata?.learner_type||'student',avatar_url:null,email:user.email||null})})();return()=>{mounted=false}},[]);
+ useEffect(()=>{let mounted=true;(async()=>{const db=createClient();const {data:{user}}=await db.auth.getUser();if(!user)return;const {data}=await db.from('profiles').select('full_name,role,learner_type,avatar_url,email').eq('id',user.id).maybeSingle();if(mounted)setProfile((data as Profile)||{full_name:(user as any).name||'',role:'student',learner_type:'student',avatar_url:null,email:user.email||null})})();return()=>{mounted=false}},[]);
  const activeRole=profile?.role||role;
  const navItems=useMemo(()=>activeRole==='admin'?adminItems:activeRole==='instructor'?instructorItems:learnerItems,[activeRole]);
  const name=profile?.full_name|| (activeRole==='admin'?'CareSim Admin':activeRole==='instructor'?'Clinical Instructor':'CareSim Learner');const init=initials(name,profile?.email);
- async function signOut(){const supabase=createClient();try{await supabase.rpc('record_app_activity',{p_action:'logout',p_metadata:{path},p_entity_type:'session',p_entity_id:null})}catch{}await supabase.auth.signOut();router.replace('/login');router.refresh()}
+ async function signOut(){const db=createClient();try{await db.rpc('record_app_activity',{p_action:'logout',p_metadata:{path},p_entity_type:'session',p_entity_id:null})}catch{}await db.auth.signOut();router.replace('/login');router.refresh()}
  function searchSubmit(e:React.FormEvent){e.preventDefault();const q=search.trim();if(!q)return;if(activeRole==='admin')router.push(`/admin/scenarios?q=${encodeURIComponent(q)}`);else if(activeRole==='instructor')router.push(`/instructor/scenarios?q=${encodeURIComponent(q)}`);else router.push(`/simulations?q=${encodeURIComponent(q)}`)}
  return <div className={`app-shell role-${activeRole}`}><button className={`sidebar-overlay ${open?'show':''}`} aria-label="Close menu" onClick={()=>setOpen(false)}/><aside data-lenis-prevent className={`sidebar ${open?'open':''}`}><div className="sidebar-top"><Brand/><button className="mobile-close" aria-label="Close menu" onClick={()=>setOpen(false)}><i className="fa-solid fa-xmark"/></button></div><nav className="nav-list">{navItems.map(([href,icon,label])=><Link key={href} href={href} className={`nav-item ${path===href||(href!=='/dashboard'&&href!=='/admin'&&href!=='/instructor'&&path.startsWith(href))?'active':''}`}><i className={`fa-solid ${icon}`}/><span>{label}</span></Link>)}</nav>
  {activeRole==='student'?<div className="sidebar-card"><div className="mini-icon"><i className="fa-solid fa-stethoscope"/></div><div><b>Clinical streak</b><span>Keep practicing safely</span></div></div>:<div className="sidebar-card staff-card"><div className="mini-icon"><i className={`fa-solid ${activeRole==='admin'?'fa-shield-heart':'fa-chalkboard-user'}`}/></div><div><b>{activeRole==='admin'?'Platform administration':'Clinical teaching'}</b><span>{activeRole==='admin'?'Governance & operations':'Courses & learner oversight'}</span></div></div>}

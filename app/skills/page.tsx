@@ -1,6 +1,7 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 type SkillScenario = {
   id: string;
@@ -23,24 +24,24 @@ function humanize(value: string) {
 }
 
 export default async function Skills() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
 
   const [{ data: skills }, { data: masteryRows }, { data: profile }] = await Promise.all([
-    supabase
+    db
       .from('scenarios')
       .select('id,title,slug,description,specialty,current_version')
       .eq('type', 'skill')
       .eq('is_published', true)
       .order('created_at', { ascending: false }),
     user
-      ? supabase
+      ? db
           .from('skill_mastery')
           .select('skill_key,mastery,attempts_count,best_score')
           .eq('student_id', user.id)
       : Promise.resolve({ data: [] as MasteryRow[] }),
     user
-      ? supabase.from('profiles').select('personal_skills').eq('id', user.id).maybeSingle()
+      ? db.from('profiles').select('personal_skills').eq('id', user.id).maybeSingle()
       : Promise.resolve({ data: null as { personal_skills?: string[] } | null }),
   ]);
 

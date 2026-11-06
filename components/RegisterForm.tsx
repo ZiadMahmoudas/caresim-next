@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 function passwordError(value:string){
   if(value.length<8) return 'Use at least 8 characters.';
@@ -48,8 +48,8 @@ export function RegisterForm(){
       const result=await response.json();
       if(!response.ok) throw new Error(result.error||'Unable to create account');
 
-      const supabase=createClient();
-      const {error:signInError}=await supabase.auth.signInWithPassword({
+      const db=createClient();
+      const {error:signInError}=await db.auth.signInWithPassword({
         email:email.trim().toLowerCase(),
         password,
       });

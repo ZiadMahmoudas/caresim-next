@@ -1,8 +1,9 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
 import { StatCard } from '@/components/StatCard';
 import { ProgressRing } from '@/components/ProgressRing';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 type Attempt = { id:string; score:number; completed_at:string|null };
 type Mastery = { skill_key:string; mastery:number; attempts_count:number };
@@ -11,15 +12,15 @@ type Scenario = { title:string; slug:string; description:string|null; specialty:
 function humanize(v:string){return v.replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
 
 export default async function Dashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
 
   const [{ data: profile }, { data: attemptsData }, { data: masteryData }, { data: scenariosData }, { data: memberships }] = await Promise.all([
-    user ? supabase.from('profiles').select('full_name,learner_type').eq('id',user.id).maybeSingle() : Promise.resolve({data:null}),
-    user ? supabase.from('attempts').select('id,score,completed_at').eq('student_id',user.id).eq('status','completed').order('completed_at',{ascending:false}).limit(8) : Promise.resolve({data:[] as Attempt[]}),
-    user ? supabase.from('skill_mastery').select('skill_key,mastery,attempts_count').eq('student_id',user.id).order('updated_at',{ascending:false}).limit(5) : Promise.resolve({data:[] as Mastery[]}),
-    supabase.from('scenarios').select('title,slug,description,specialty,type').eq('is_published',true).order('created_at',{ascending:false}).limit(6),
-    user ? supabase.from('course_members').select('course_id').eq('student_id',user.id) : Promise.resolve({data:[] as {course_id:string}[]}),
+    user ? db.from('profiles').select('full_name,learner_type').eq('id',user.id).maybeSingle() : Promise.resolve({data:null}),
+    user ? db.from('attempts').select('id,score,completed_at').eq('student_id',user.id).eq('status','completed').order('completed_at',{ascending:false}).limit(8) : Promise.resolve({data:[] as Attempt[]}),
+    user ? db.from('skill_mastery').select('skill_key,mastery,attempts_count').eq('student_id',user.id).order('updated_at',{ascending:false}).limit(5) : Promise.resolve({data:[] as Mastery[]}),
+    db.from('scenarios').select('title,slug,description,specialty,type').eq('is_published',true).order('created_at',{ascending:false}).limit(6),
+    user ? db.from('course_members').select('course_id').eq('student_id',user.id) : Promise.resolve({data:[] as {course_id:string}[]}),
   ]);
 
   const attempts=(attemptsData||[]) as Attempt[];

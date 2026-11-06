@@ -1,6 +1,6 @@
 'use client';
 import { useEffect,useMemo,useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 type Profile={id:string;full_name:string;email:string|null;role:string};
 type AppLog={id:number;actor_id:string|null;action:string;entity_type:string|null;entity_id:string|null;metadata:Record<string,unknown>;created_at:string};

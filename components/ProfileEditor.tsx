@@ -1,7 +1,7 @@
 'use client';
 import { useEffect,useRef,useState } from 'react';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 import { initials,roleLabel } from '@/lib/auth';
 type P={id:string;full_name:string;email:string|null;role:string;learner_type:string|null;avatar_url:string|null;bio:string|null;academic_level:string|null;specialization:string|null;personal_skills:string[]|null;created_at:string};
 type M={skill_key:string;mastery:number;attempts_count:number;best_score:number};

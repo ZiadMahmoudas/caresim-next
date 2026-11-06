@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { AppShell } from '@/components/AppShell';
 import { ProgressRing } from '@/components/ProgressRing';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 type Attempt = { id: string; score: number; completed_at: string | null };
 type Result = { attempt_id: string; final_score: number; competency_scores: Record<string, number> | null };
@@ -12,11 +13,11 @@ function titleCase(value: string) {
 }
 
 export default async function Progress() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
 
   const { data: attemptsData } = user
-    ? await supabase
+    ? await db
         .from('attempts')
         .select('id,score,completed_at')
         .eq('student_id', user.id)
@@ -30,10 +31,10 @@ export default async function Progress() {
 
   const [{ data: resultData }, { data: masteryData }] = await Promise.all([
     attemptIds.length
-      ? supabase.from('attempt_results').select('attempt_id,final_score,competency_scores').in('attempt_id', attemptIds)
+      ? db.from('attempt_results').select('attempt_id,final_score,competency_scores').in('attempt_id', attemptIds)
       : Promise.resolve({ data: [] as Result[] }),
     user
-      ? supabase
+      ? db
           .from('skill_mastery')
           .select('skill_key,mastery,attempts_count,best_score')
           .eq('student_id', user.id)

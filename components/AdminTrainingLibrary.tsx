@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 type Skill = {
   id: string;
@@ -21,8 +21,8 @@ export function AdminTrainingLibrary() {
   const [form, setForm] = useState({ title: '', specialty: '', difficulty: 'Beginner', description: '' });
 
   async function load() {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const db = createClient();
+    const { data, error } = await db
       .from('scenarios')
       .select('id,title,slug,description,specialty,is_published,current_version')
       .eq('type', 'skill')
@@ -38,8 +38,8 @@ export function AdminTrainingLibrary() {
     event.preventDefault();
     if (!form.title.trim()) return;
     setSaving(true); setMessage('');
-    const supabase = createClient();
-    const { error } = await supabase.rpc('admin_create_training_skill', {
+    const db = createClient();
+    const { error } = await db.rpc('admin_create_training_skill', {
       p_title: form.title.trim(),
       p_description: form.description.trim() || null,
       p_specialty: form.specialty.trim() || null,
@@ -56,8 +56,8 @@ export function AdminTrainingLibrary() {
 
   async function toggle(skill: Skill) {
     setMessage('');
-    const supabase = createClient();
-    const { error } = await supabase.rpc('admin_set_scenario_published', {
+    const db = createClient();
+    const { error } = await db.rpc('admin_set_scenario_published', {
       p_scenario_id: skill.id,
       p_published: !skill.is_published,
     });

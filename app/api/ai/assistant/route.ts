@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/neon/server';
 
 type Hist={role:'user'|'assistant';text:string};
 const platform=`CareSim is a nursing education and clinical simulation platform. Learners are nursing students or practicing nurses. Clinical Instructors author scenarios, patient facts, clinical actions, assessment questions, correct answers, scoring rules, courses and assignments. Administrators manage the whole platform. Skills Lab trains procedures. Clinical Simulation trains assessment, reasoning, intervention and reassessment. Simulation grading is deterministic and server-authoritative; AI does not decide clinical correctness.`;
 
 export async function POST(request:Request){
- const supabase=await createClient();const {data:{user}}=await supabase.auth.getUser();
+ const db=await createClient();const {data:{user}}=await db.auth.getUser();
  const body=await request.json().catch(()=>({}));const message=String(body.message||'').trim().slice(0,1200);if(!message)return NextResponse.json({error:'Message is required'},{status:400});
  const history=(Array.isArray(body.history)?body.history:[]).slice(-8) as Hist[];
- const {data:retrieved}=await supabase.rpc('search_knowledge',{p_query:message,p_limit:6});
- const {data:scenarios}=await supabase.from('scenarios').select('title,description,specialty,type').eq('is_published',true).limit(8);
+ const {data:retrieved}=await db.rpc('search_knowledge',{p_query:message,p_limit:6});
+ const {data:scenarios}=await db.from('scenarios').select('title,description,specialty,type').eq('is_published',true).limit(8);
  let role='visitor';let learnerType='';let courses:any[]=[];
- if(user){const {data:p}=await supabase.from('profiles').select('role,learner_type').eq('id',user.id).maybeSingle();role=p?.role||'learner';learnerType=p?.learner_type||'';if(role==='admin'){const {data:c}=await supabase.from('courses').select('title,code').limit(10);courses=c||[]}else if(role==='instructor'){const {data:c}=await supabase.from('courses').select('title,code').eq('instructor_id',user.id).limit(8);courses=c||[]}else if(role==='student'){const {data:m}=await supabase.from('course_members').select('courses(title,code)').eq('student_id',user.id).limit(8);courses=(m||[]).map((x:any)=>x.courses).filter(Boolean)}}
+ if(user){const {data:p}=await db.from('profiles').select('role,learner_type').eq('id',user.id).maybeSingle();role=p?.role||'learner';learnerType=p?.learner_type||'';if(role==='admin'){const {data:c}=await db.from('courses').select('title,code').limit(10);courses=c||[]}else if(role==='instructor'){const {data:c}=await db.from('courses').select('title,code').eq('instructor_id',user.id).limit(8);courses=c||[]}else if(role==='student'){const {data:m}=await db.from('course_members').select('courses(title,code)').eq('student_id',user.id).limit(8);courses=(m||[]).map((x:any)=>x.courses).filter(Boolean)}}
  const context=[platform,...(retrieved||[]).map((x:any)=>`SOURCE: ${x.title}\n${x.content}`),...(scenarios||[]).map((s:any)=>`PUBLISHED TRAINING: ${s.title} | ${s.specialty||'General nursing'} | ${s.type} | ${s.description||''}`),courses.length?`USER COURSES: ${courses.map(c=>`${c.title}${c.code?` (${c.code})`:''}`).join(', ')}`:''].filter(Boolean).join('\n\n');
  const key=process.env.GEMINI_API_KEY;
  if(!key){return NextResponse.json({reply:`CareSim Assistant is ready, but GEMINI_API_KEY is not configured. Based on CareSim data: ${String((retrieved||[])[0]?.content||platform).slice(0,520)}`,sources:(retrieved||[]).map((x:any)=>x.title).slice(0,4)});}

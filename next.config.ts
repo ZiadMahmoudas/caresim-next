@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: '**.supabase.co' },
+      { protocol: 'https', hostname: '**.neon.tech' },
+      { protocol: 'https', hostname: '**.aws.neon.tech' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
   },

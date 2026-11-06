@@ -1,6 +1,6 @@
 'use client';
 import { useEffect,useMemo,useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/neon/client';
 
 type Attempt={id:string;student_id:string;scenario_version_id:string;status:string;score:number;started_at:string;completed_at:string|null};
 type Result={attempt_id:string;final_score:number;clinical_score:number|null;assessment_score:number|null;patient_outcome:string|null;competency_scores:Record<string,number>|null;passed:boolean|null};
