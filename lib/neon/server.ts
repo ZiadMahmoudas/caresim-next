@@ -1,8 +1,9 @@
 import { NeonPostgrestClient } from '@neondatabase/postgrest-js';
-import { auth } from './auth-server';
+import { getAuth } from './auth-server';
 
 async function jwt(): Promise<string | null> {
   try {
+    const auth = getAuth();
     const result: any = await (auth as any).token();
     return result?.data?.token ?? result?.token ?? null;
   } catch {
@@ -26,15 +27,24 @@ export async function createClient() {
     options: { global: { fetch: authFetch }, db: { schema: 'public' } },
   });
 
-  // Small compatibility layer so existing server code can keep db.auth.getUser().
+  // Compatibility layer so existing server code can keep db.auth.getUser().
   db.auth = {
     getUser: async () => {
-      const result: any = await auth.getSession();
-      return {
-        data: { user: result?.data?.user ?? result?.data?.session?.user ?? null },
-        error: result?.error ?? null,
-      };
+      try {
+        const auth = getAuth();
+        const result: any = await auth.getSession();
+        return {
+          data: { user: result?.data?.user ?? result?.data?.session?.user ?? null },
+          error: result?.error ?? null,
+        };
+      } catch (error) {
+        return {
+          data: { user: null },
+          error,
+        };
+      }
     },
   };
+
   return db;
 }

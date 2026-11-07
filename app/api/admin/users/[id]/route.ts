@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/neon/server';
-import { auth } from '@/lib/neon/auth-server';
+import { getAuth } from '@/lib/neon/auth-server';
 import { adminSql } from '@/lib/neon/sql';
 
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
@@ -20,6 +20,7 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
   await sql`update public.audit_logs set actor_id=null where actor_id=${id}`;
   await sql`insert into public.audit_logs(actor_id,action,entity_type,entity_id,metadata) values(${user.id},'user_deleted','profile',${id},'{}'::jsonb)`;
 
+  const auth = getAuth();
   const result:any = await (auth as any).admin.removeUser({ userId: id });
   if (result?.error) return NextResponse.json({ error: result.error.message || 'Unable to delete Auth user.' }, { status: result.error.status || 400 });
 

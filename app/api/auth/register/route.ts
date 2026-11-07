@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/neon/auth-server';
+import { getAuth } from '@/lib/neon/auth-server';
 import { adminSql } from '@/lib/neon/sql';
 
 function validPassword(value: string) {
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 });
     if (!validPassword(password)) return NextResponse.json({ error: 'Use at least 8 characters with uppercase, lowercase and a number.' }, { status: 400 });
 
+    const auth = getAuth();
     const result: any = await (auth as any).signUp.email({ email, password, name: fullName });
     if (result?.error) {
       const message = /already|registered|exists/i.test(result.error.message || '')

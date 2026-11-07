@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/neon/server';
-import { auth } from '@/lib/neon/auth-server';
+import { getAuth } from '@/lib/neon/auth-server';
 import { adminSql } from '@/lib/neon/sql';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -22,6 +22,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   // Better Auth's admin plugin gates privileged user-management methods on the Auth role.
   // Keep that role in sync with CareSim's application role: app admins => auth admin; everyone else => auth user.
+  const auth = getAuth();
   const authResult: any = await (auth as any).admin.setRole({ userId: id, role: role === 'admin' ? 'admin' : 'user' });
   if (authResult?.error) {
     return NextResponse.json({ error: authResult.error.message || 'Unable to update authentication role.' }, { status: authResult.error.status || 400 });
